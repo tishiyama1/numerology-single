@@ -26,21 +26,16 @@ export default function RootLayout({
     <html lang="ja">
       <body
         className={`
-          ${geistSans.variable} 
-          ${geistMono.variable} 
-          subpixel-antialiased
+          ${geistSans.variable}
+          ${geistMono.variable}
           min-h-screen
-          text-slate-800
+          text-slate-900
+          font-normal
+          sm:subpixel-antialiased
         `}
       >
-        {/* 背景グラデーション */}
-        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-pink-50 via-white to-amber-50" />
-
-        {/* メインレイアウト */}
         <main className="min-h-screen px-4 sm:px-6 lg:px-8 py-10">
-          <div className="mx-auto max-w-screen-xl">
-            {children}
-          </div>
+          <div className="mx-auto max-w-screen-xl">{children}</div>
         </main>
       </body>
     </html>
