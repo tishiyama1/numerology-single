@@ -292,7 +292,7 @@ export default function SinglePage() {
 
         {/* 印刷物に載せる：名前・生年月日（画面でも表示してOK） */}
         <div className="mb-6 print-avoid-inside">
-          <div className="text-xl font-extrabold">数秘術 計算結果</div>
+          <div className="text-xl font-bold">数秘術 計算結果</div>
           <div className="mt-2 grid grid-cols-2 gap-4">
             <div className="rounded-xl border px-4 py-3">
               <div className="text-xs text-slate-500">名前</div>
