@@ -291,7 +291,7 @@ export default function SinglePage() {
         </div>
 
         {/* 印刷物に載せる：名前・生年月日（画面でも表示してOK） */}
-        <div className="mb-6">
+        <div className="mb-6 print-avoid-inside">
           <div className="text-xl font-extrabold">数秘術 計算結果</div>
           <div className="mt-2 grid grid-cols-2 gap-4">
             <div className="rounded-xl border px-4 py-3">
@@ -308,7 +308,7 @@ export default function SinglePage() {
         {/* 1ページ目：結果（印刷対象） */}
         <div className="grid gap-8 lg:grid-cols-2 items-start print-grid">
           {/* 左：十字（北=PN 西=LP 中央=DP 東=MP 南=SP） */}
-          <div className="print-avoid-break">
+          <div className="print-avoid-break print-avoid-inside print-break-after">
             <h2 className="font-bold mb-4">主要ナンバー（十字）</h2>
 
             <div className="grid grid-cols-3 gap-4">
@@ -430,10 +430,10 @@ export default function SinglePage() {
         </div>
 
         {/* 2ページ目：計算ロジック説明（画面でも表示、印刷では次ページ） */}
-        <div className="print-page-break mt-10">
+        <div className="print-page-break mt-10 print-break-before">
           <div className="text-xl font-extrabold mb-3">計算ロジック（確認用）</div>
 
-          <div className="rounded-2xl border border-slate-300 p-4 mb-5">
+          <div className="rounded-2xl border border-slate-300 p-4 mb-5 print-avoid-inside">
             <div className="text-sm text-slate-800 font-semibold mb-1">重要：結果の扱いについて</div>
             <p className="text-sm text-slate-700 leading-relaxed">
               本ページの数値は、計算を補助する目的で表示しています。数秘術は流派により定義や縮約ルールが異なり得るため、
@@ -442,7 +442,7 @@ export default function SinglePage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-300 p-4 mb-6">
+          <div className="rounded-2xl border border-slate-300 p-4 mb-6 print-avoid-inside">
             <div className="text-sm font-semibold text-slate-900 mb-2">
               このページで採用している縮約ルール
             </div>
@@ -454,7 +454,7 @@ export default function SinglePage() {
           </div>
 
           {/* 実際の値で説明 */}
-          <div className="rounded-2xl border border-slate-300 p-4">
+          <div className="rounded-2xl border border-slate-300 p-4 print-avoid-inside">
             <div className="text-lg font-bold mb-3">主要ナンバー（この入力での計算）</div>
 
             <KeyValueRow

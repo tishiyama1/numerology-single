@@ -30,23 +30,31 @@ body {
 ===================== */
 
 @media print {
-
-  /* 横印刷を指定（ブラウザに依頼する形） */
   @page {
     size: A4 landscape;
     margin: 12mm;
   }
 
-  /* インテンシティ前で必ず改ページ */
+  /* ここで改ページしたい */
   .print-break-before {
     break-before: page;
     page-break-before: always;
   }
 
-  /* ブロック途中で分割させない */
+  /* ここで改ページしてほしい（= 1ページ目の終わり） */
+  .print-break-after {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  /* ブロック途中で割らない */
   .print-avoid-inside {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
+  /* 余計な横スクロールなどが出るのを抑止（保険） */
+  body {
+    overflow: visible !important;
+  }
 }
