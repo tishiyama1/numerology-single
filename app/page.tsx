@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
    数秘術ユーティリティ
 ===================== */
 
-const VOWELS = new Set(["A", "E", "I", "O", "U", "Y"]);
+const VOWELS = new Set(["A", "E", "I", "O", "U"]);
 
 const letterValue = (ch: string): number => {
   const code = ch.charCodeAt(0);
@@ -171,15 +171,29 @@ export default function SinglePage() {
     const maturity = reduceCore(lifePath + destiny);
 
     // intensity
-    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 };
+    const counts: Record<number, number> = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+      6: 0,
+      7: 0,
+      8: 0,
+      9: 0,
+    };
     const intensityDigits = `${d.y}${d.m}${d.d}`.replace(/0/g, "");
     intensityDigits.split("").forEach((n) => {
       const num = Number(n);
       if (num >= 1 && num <= 9) counts[num]++;
     });
 
-    const strong = Object.keys(counts).map(Number).filter((n) => counts[n] >= 3);
-    const missing = Object.keys(counts).map(Number).filter((n) => counts[n] === 0);
+    const strong = Object.keys(counts)
+      .map(Number)
+      .filter((n) => counts[n] >= 3);
+    const missing = Object.keys(counts)
+      .map(Number)
+      .filter((n) => counts[n] === 0);
 
     // cycles
     const mm1 = reduceSingle(d.m);
@@ -246,8 +260,8 @@ export default function SinglePage() {
   const birthLabel = birth ? birth : "—";
 
   return (
-    <div className="min-h-screen bg-white px-4 py-10">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-white px-2 sm:px-4 lg:px-6 py-10">
+      <div className="mx-auto max-w-screen-2xl">
         {/* 画面用ヘッダー（印刷では非表示） */}
         <div className="print-hidden flex items-center justify-between gap-3 mb-6">
           <h1 className="text-2xl font-bold">数秘術 計算ページ</h1>
@@ -354,33 +368,56 @@ export default function SinglePage() {
               </div>
             </div>
 
-            {/* 4つの時期：枠線あり表 */}
+            {/* 4つの時期：横スクロール無しでフィット */}
             <div className="print-avoid-break">
               <h2 className="font-bold mb-3">4つの時期</h2>
 
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] border-collapse border border-slate-300">
+              <div className="w-full">
+                <table className="w-full table-fixed border-collapse border border-slate-300 text-[11px] leading-tight">
+                  <colgroup>
+                    <col className="w-[80px]" />
+                    <col className="w-[calc((100%-80px)/4)]" />
+                    <col className="w-[calc((100%-80px)/4)]" />
+                    <col className="w-[calc((100%-80px)/4)]" />
+                    <col className="w-[calc((100%-80px)/4)]" />
+                  </colgroup>
+
                   <tbody>
                     <tr className="bg-slate-50">
-                      <th className="border border-slate-300 px-3 py-2 text-left">時期</th>
+                      <th className="border border-slate-300 px-2 py-1 text-left">時期</th>
                       {(result?.ages ?? ["—", "—", "—", "—"]).map((a, i) => (
-                        <th key={`age-${i}`} className="border border-slate-300 px-3 py-2 text-left">
+                        <th
+                          key={`age-${i}`}
+                          className="border border-slate-300 px-2 py-1 text-left whitespace-normal break-words"
+                        >
                           {a}
                         </th>
                       ))}
                     </tr>
+
                     <tr>
-                      <th className="border border-slate-300 px-3 py-2 text-left bg-amber-50">ピナクル</th>
+                      <th className="border border-slate-300 px-2 py-1 text-left bg-amber-50">
+                        ピナクル
+                      </th>
                       {(result?.pinnacles ?? [0, 0, 0, 0]).map((n, i) => (
-                        <td key={`pin-${i}`} className="border border-slate-300 px-3 py-2 font-bold">
+                        <td
+                          key={`pin-${i}`}
+                          className="border border-slate-300 px-2 py-1 font-bold text-center"
+                        >
                           {result ? n : "—"}
                         </td>
                       ))}
                     </tr>
+
                     <tr>
-                      <th className="border border-slate-300 px-3 py-2 text-left bg-pink-50">チャレンジ</th>
+                      <th className="border border-slate-300 px-2 py-1 text-left bg-pink-50">
+                        チャレンジ
+                      </th>
                       {(result?.challenges ?? [0, 0, 0, 0]).map((n, i) => (
-                        <td key={`cha-${i}`} className="border border-slate-300 px-3 py-2 font-bold">
+                        <td
+                          key={`cha-${i}`}
+                          className="border border-slate-300 px-2 py-1 font-bold text-center"
+                        >
                           {result ? n : "—"}
                         </td>
                       ))}
@@ -406,7 +443,9 @@ export default function SinglePage() {
           </div>
 
           <div className="rounded-2xl border border-slate-300 p-4 mb-6">
-            <div className="text-sm font-semibold text-slate-900 mb-2">このページで採用している縮約ルール</div>
+            <div className="text-sm font-semibold text-slate-900 mb-2">
+              このページで採用している縮約ルール
+            </div>
             <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
               <li>基本は各合計を 1桁になるまで加算して縮約します（例：29 → 2+9=11）。</li>
               <li>主要ナンバー（LP/PN/DP/MP/SP）は 11 / 22 / 33 をマスターナンバーとして保持します。</li>
@@ -433,8 +472,11 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    年 {result.d.y} → {result.yCore}、月 {result.d.m} → {result.mCore}、日 {result.d.d} → {result.dCore} を合計：
-                    {` ${result.yCore} + ${result.mCore} + ${result.dCore} = ${result.yCore + result.mCore + result.dCore}`}
+                    年 {result.d.y} → {result.yCore}、月 {result.d.m} → {result.mCore}、日{" "}
+                    {result.d.d} → {result.dCore} を合計：
+                    {` ${result.yCore} + ${result.mCore} + ${result.dCore} = ${
+                      result.yCore + result.mCore + result.dCore
+                    }`}
                     。これを主要縮約（11/22/33保持）して LP = <b>{result.lifePath}</b>。
                   </>
                 ) : (
@@ -462,8 +504,8 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    母音（A,E,I,O,U,Y）のみ合計：
-                    合計 {result.soulSum} → 主要縮約して SP = <b>{result.soul}</b>。
+                    母音（A,E,I,O,U,Y）のみ合計： 合計 {result.soulSum} → 主要縮約して SP ={" "}
+                    <b>{result.soul}</b>。
                   </>
                 ) : (
                   "名前を入力してください。"
@@ -476,8 +518,8 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    子音（母音以外）のみ合計：
-                    合計 {result.personalitySum} → 主要縮約して PN = <b>{result.personality}</b>。
+                    子音（母音以外）のみ合計： 合計 {result.personalitySum} → 主要縮約して PN ={" "}
+                    <b>{result.personality}</b>。
                   </>
                 ) : (
                   "名前を入力してください。"
@@ -490,8 +532,7 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    MP = LP + DP：
-                    {` ${result.lifePath} + ${result.destiny} = ${result.lifePath + result.destiny}`}
+                    MP = LP + DP：{` ${result.lifePath} + ${result.destiny} = ${result.lifePath + result.destiny}`}
                     → 主要縮約して MP = <b>{result.maturity}</b>。
                   </>
                 ) : (
@@ -540,10 +581,9 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    第1期の終わり = 36 − LP(1桁)。
-                    LP {result.lifePath} → 1桁 {reduceSingle(result.lifePath)}。
-                    36 − {reduceSingle(result.lifePath)} = <b>{result.end1}</b>。
-                    年齢帯は「{result.ages.join(" / ")}」。
+                    第1期の終わり = 36 − LP(1桁)。LP {result.lifePath} → 1桁{" "}
+                    {reduceSingle(result.lifePath)}。36 − {reduceSingle(result.lifePath)} ={" "}
+                    <b>{result.end1}</b>。年齢帯は「{result.ages.join(" / ")}」。
                   </>
                 ) : (
                   "入力してください。"
@@ -556,10 +596,10 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    月 {result.d.m}→{result.mm1}、日 {result.d.d}→{result.dd1}、年 {result.d.y}→{result.yy1}。
-                    P1=月+日→{reduceSingle(result.mm1 + result.dd1)}、P2=日+年→{reduceSingle(result.dd1 + result.yy1)}、
-                    P3=P1+P2→{result.pinnacles[2]}、P4=月+年→{result.pinnacles[3]}。
-                    結果： <b>{result.pinnacles.join(", ")}</b>
+                    月 {result.d.m}→{result.mm1}、日 {result.d.d}→{result.dd1}、年 {result.d.y}→
+                    {result.yy1}。P1=月+日→{reduceSingle(result.mm1 + result.dd1)}、P2=日+年→
+                    {reduceSingle(result.dd1 + result.yy1)}、P3=P1+P2→{result.pinnacles[2]}、
+                    P4=月+年→{result.pinnacles[3]}。結果： <b>{result.pinnacles.join(", ")}</b>
                   </>
                 ) : (
                   "入力してください。"
@@ -573,8 +613,8 @@ export default function SinglePage() {
                 result ? (
                   <>
                     C1=|月−日|={result.challenges[0]}、C2=|日−年|={result.challenges[1]}、
-                    C3=|C1−C2|={result.challenges[2]}、C4=|月−年|={result.challenges[3]}。
-                    結果： <b>{result.challenges.join(", ")}</b>
+                    C3=|C1−C2|={result.challenges[2]}、C4=|月−年|={result.challenges[3]}。結果：{" "}
+                    <b>{result.challenges.join(", ")}</b>
                   </>
                 ) : (
                   "入力してください。"
@@ -584,7 +624,8 @@ export default function SinglePage() {
           </div>
 
           <div className="text-xs text-slate-600 mt-6">
-            ※ ここに記載しているのは「このページで採用しているルール」と「この入力で実際に出た計算過程」です。別流派に合わせる場合は、縮約ルールや母音扱い（Y含む/含まない等）を指定してください。
+            ※ ここに記載しているのは「このページで採用しているルール」と「この入力で実際に出た計算過程」です。別流派に合わせる場合は、
+            縮約ルールや母音扱い（Y含む/含まない等）を指定してください。
           </div>
         </div>
       </div>
