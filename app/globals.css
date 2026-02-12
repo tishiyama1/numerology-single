@@ -62,3 +62,7 @@ body {
 body {
   background: linear-gradient(135deg, rgb(253 242 248), white, rgb(255 251 235));
 }
+
+h1, h2, h3 {
+  color: rgb(15 23 42); /* slate-900 相当 */
+}
