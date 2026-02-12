@@ -329,7 +329,7 @@ export default function SinglePage() {
           {/* 右：インテンシティ + 4つの時期 */}
           <div className="space-y-8">
             {/* インテンシティ */}
-            <div className="print-avoid-break">
+            <div className="print-avoid-break print-break-before print-avoid-inside">
               <h2 className="font-bold mb-3">インテンシティ</h2>
 
               <div className="grid grid-cols-9 gap-2 mb-4">
