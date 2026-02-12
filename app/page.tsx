@@ -308,7 +308,7 @@ export default function SinglePage() {
         {/* 1ページ目：結果（印刷対象） */}
         <div className="grid gap-8 lg:grid-cols-2 items-start print-grid">
           {/* 左：十字（北=PN 西=LP 中央=DP 東=MP 南=SP） */}
-          <div className="print-avoid-break print-avoid-inside print-break-after">
+          <div className="print-avoid-inside">
             <h2 className="font-bold mb-4">主要ナンバー（十字）</h2>
 
             <div className="grid grid-cols-3 gap-4">
@@ -329,7 +329,7 @@ export default function SinglePage() {
           {/* 右：インテンシティ + 4つの時期 */}
           <div className="space-y-8">
             {/* インテンシティ */}
-            <div className="print-avoid-break print-break-before print-avoid-inside">
+            <div className="print-avoid-inside">
               <h2 className="font-bold mb-3">インテンシティ</h2>
 
               <div className="grid grid-cols-9 gap-2 mb-4">
@@ -369,7 +369,7 @@ export default function SinglePage() {
             </div>
 
             {/* 4つの時期：横スクロール無しでフィット */}
-            <div className="print-avoid-break">
+            <div className="print-avoid-inside print-break-after">
               <h2 className="font-bold mb-3">4つの時期</h2>
 
               <div className="w-full">
