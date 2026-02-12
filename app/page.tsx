@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
    数秘術ユーティリティ
 ===================== */
 
-const VOWELS = new Set(["A", "E", "I", "O", "U"]);
+const VOWELS = new Set(["A", "E", "I", "O", "U"]); // Yは母音に含めない流派
 
 const letterValue = (ch: string): number => {
   const code = ch.charCodeAt(0);
@@ -32,9 +32,24 @@ const reduceSingle = (n: number): number => {
   return n;
 };
 
+const isValidDate = (y: number, m: number, d: number): boolean => {
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return false;
+  if (m < 1 || m > 12) return false;
+  if (d < 1 || d > 31) return false;
+
+  // JS Dateで実在日付チェック（うるう年含む）
+  const dt = new Date(y, m - 1, d);
+  return (
+    dt.getFullYear() === y &&
+    dt.getMonth() === m - 1 &&
+    dt.getDate() === d
+  );
+};
+
 const parseDate = (v: string): { y: number; m: number; d: number } | null => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
   const [y, m, d] = v.split("-").map(Number);
+  if (!isValidDate(y, m, d)) return null;
   return { y, m, d };
 };
 
@@ -119,8 +134,8 @@ type Result = {
   soulSum: number;
   personalitySum: number;
 
-  // intensity
-  intensityDigits: string; // digits used (0 removed)
+  // intensity (name-based)
+  intensityDigits: string; // digits used (name letters -> values -> concatenated)
   counts: Record<number, number>;
   strong: number[];
   missing: number[];
@@ -155,9 +170,17 @@ export default function SinglePage() {
     let soulSum = 0;
     let personalitySum = 0;
 
+    // インテンシティ（名前由来）用：各文字の数値（1-9）を並べた文字列
+    // 例: TARO -> 2,1,9,6 -> "2196"
+    let nameDigits = "";
+
     for (const ch of letters) {
       const v = letterValue(ch);
+      if (v <= 0) continue;
+
       destinySum += v;
+      nameDigits += String(v);
+
       if (VOWELS.has(ch)) {
         soulSum += v;
       } else {
@@ -170,7 +193,7 @@ export default function SinglePage() {
     const personality = reduceCore(personalitySum);
     const maturity = reduceCore(lifePath + destiny);
 
-    // intensity
+    // intensity (name-based)
     const counts: Record<number, number> = {
       1: 0,
       2: 0,
@@ -182,7 +205,10 @@ export default function SinglePage() {
       8: 0,
       9: 0,
     };
-    const intensityDigits = `${d.y}${d.m}${d.d}`.replace(/0/g, "");
+
+    // 名前が空なら空文字のまま（カウントは全部0）
+    const intensityDigits = nameDigits;
+
     intensityDigits.split("").forEach((n) => {
       const num = Number(n);
       if (num >= 1 && num <= 9) counts[num]++;
@@ -191,6 +217,7 @@ export default function SinglePage() {
     const strong = Object.keys(counts)
       .map(Number)
       .filter((n) => counts[n] >= 3);
+
     const missing = Object.keys(counts)
       .map(Number)
       .filter((n) => counts[n] === 0);
@@ -200,18 +227,18 @@ export default function SinglePage() {
     const dd1 = reduceSingle(d.d);
     const yy1 = reduceSingle(d.y);
 
+    function pinnaclesStep3(mm: number, dd: number, yy: number) {
+      const p1 = reduceSingle(mm + dd);
+      const p2 = reduceSingle(dd + yy);
+      return p1 + p2;
+    }
+
     const pinnacles: [number, number, number, number] = [
       reduceSingle(mm1 + dd1),
       reduceSingle(dd1 + yy1),
       reduceSingle(pinnaclesStep3(mm1, dd1, yy1)),
       reduceSingle(mm1 + yy1),
     ];
-
-    function pinnaclesStep3(mm: number, dd: number, yy: number) {
-      const p1 = reduceSingle(mm + dd);
-      const p2 = reduceSingle(dd + yy);
-      return p1 + p2;
-    }
 
     const challenges: [number, number, number, number] = [
       Math.abs(mm1 - dd1),
@@ -330,7 +357,7 @@ export default function SinglePage() {
           <div className="space-y-8">
             {/* インテンシティ */}
             <div className="print-avoid-inside">
-              <h2 className="font-bold mb-3">インテンシティ</h2>
+              <h2 className="font-bold mb-3">インテンシティ（名前ベース）</h2>
 
               <div className="grid grid-cols-9 gap-2 mb-4">
                 {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
@@ -450,6 +477,8 @@ export default function SinglePage() {
               <li>基本は各合計を 1桁になるまで加算して縮約します（例：29 → 2+9=11）。</li>
               <li>主要ナンバー（LP/PN/DP/MP/SP）は 11 / 22 / 33 をマスターナンバーとして保持します。</li>
               <li>ピナクル・チャレンジは 1桁（デジタルルート）として扱います（マスター保持なし）。</li>
+              <li>母音は A/E/I/O/U のみ（Yは母音に含めません）。</li>
+              <li>インテンシティは「名前（英字）」を数値化した 1〜9 の出現回数で集計します。</li>
             </ul>
           </div>
 
@@ -480,7 +509,7 @@ export default function SinglePage() {
                     。これを主要縮約（11/22/33保持）して LP = <b>{result.lifePath}</b>。
                   </>
                 ) : (
-                  "生年月日を入力してください。"
+                  "生年月日を入力してください（実在しない日付は無効になります）。"
                 )
               }
             />
@@ -504,7 +533,7 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    母音（A,E,I,O,U,Y）のみ合計： 合計 {result.soulSum} → 主要縮約して SP ={" "}
+                    母音（A,E,I,O,U）のみ合計： 合計 {result.soulSum} → 主要縮約して SP ={" "}
                     <b>{result.soul}</b>。
                   </>
                 ) : (
@@ -532,7 +561,8 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    MP = LP + DP：{` ${result.lifePath} + ${result.destiny} = ${result.lifePath + result.destiny}`}
+                    MP = LP + DP：
+                    {` ${result.lifePath} + ${result.destiny} = ${result.lifePath + result.destiny}`}
                     → 主要縮約して MP = <b>{result.maturity}</b>。
                   </>
                 ) : (
@@ -550,10 +580,10 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    生年月日の数字を並べ、0を除外： <b>{result.intensityDigits || "—"}</b>
+                    名前（英字）を数値化して連結： <b>{result.intensityDigits || "—"}</b>
                   </>
                 ) : (
-                  "生年月日を入力してください。"
+                  "生年月日（実在日付）を入力してください。"
                 )
               }
             />
@@ -567,7 +597,7 @@ export default function SinglePage() {
                     <Chip>欠け: {result.missing.length ? result.missing.join(", ") : "なし"}</Chip>
                   </div>
                 ) : (
-                  "生年月日を入力してください。"
+                  "入力してください。"
                 )
               }
             />
@@ -625,7 +655,7 @@ export default function SinglePage() {
 
           <div className="text-xs text-slate-600 mt-6">
             ※ ここに記載しているのは「このページで採用しているルール」と「この入力で実際に出た計算過程」です。別流派に合わせる場合は、
-            縮約ルールや母音扱い（Y含む/含まない等）を指定してください。
+            縮約ルールやインテンシティの対象（生年月日/名前/両方）を指定してください。
           </div>
         </div>
       </div>
