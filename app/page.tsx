@@ -11,6 +11,7 @@ const VOWELS = new Set(["A", "E", "I", "O", "U"]); // Yは母音に含めない�
 const letterValue = (ch: string): number => {
   const code = ch.charCodeAt(0);
   if (code < 65 || code > 90) return 0;
+  // Pythagorean: A=1..I=9, J=1..R=9, S=1..Z=8
   return ((code - 65) % 9) + 1;
 };
 
@@ -20,6 +21,7 @@ const sumDigits = (n: number): number =>
     .split("")
     .reduce((a, b) => a + Number(b), 0);
 
+// マスターナンバー保持（11/22/33で止める）
 const reduceCore = (n: number): number => {
   while (n > 9 && ![11, 22, 33].includes(n)) {
     n = sumDigits(n);
@@ -27,6 +29,7 @@ const reduceCore = (n: number): number => {
   return n;
 };
 
+// 1桁化（マスター保持なし）
 const reduceSingle = (n: number): number => {
   while (n > 9) n = sumDigits(n);
   return n;
@@ -137,9 +140,9 @@ type Result = {
   missing: number[];
 
   // cycles
-  mm1: number;
-  dd1: number;
-  yy1: number;
+  mmRaw: number; // month raw (1-12)
+  ddRaw: number; // day raw (1-31)
+  yyRaw: number; // year raw (YYYY)
   pinnacles: [number, number, number, number];
   challenges: [number, number, number, number];
   end1: number;
@@ -154,7 +157,7 @@ export default function SinglePage() {
     const d = parseDate(birth);
     if (!d) return null;
 
-    // LP steps
+    // LP steps（従来どおり：年/月/日を reduceCore して足す）
     const yCore = reduceCore(d.y);
     const mCore = reduceCore(d.m);
     const dCore = reduceCore(d.d);
@@ -176,11 +179,8 @@ export default function SinglePage() {
       destinySum += v;
       nameDigits += String(v);
 
-      if (VOWELS.has(ch)) {
-        soulSum += v;
-      } else {
-        personalitySum += v;
-      }
+      if (VOWELS.has(ch)) soulSum += v;
+      else personalitySum += v;
     }
 
     const destiny = reduceCore(destinySum);
@@ -216,35 +216,38 @@ export default function SinglePage() {
       .map(Number)
       .filter((n) => counts[n] === 0);
 
-    // cycles
-    const mm1 = reduceSingle(d.m);
-    const dd1 = reduceSingle(d.d);
-    const yy1 = reduceSingle(d.y);
+    // =====================
+    // 4つの時期（未縮約で計算）
+    // =====================
+    const mmRaw = d.m; // 1-12
+    const ddRaw = d.d; // 1-31
+    const yyRaw = d.y; // YYYY
 
-    function pinnaclesStep3(mm: number, dd: number, yy: number) {
-      // P3 = P1 + P2（P1/P2は各期の値）
-      // 今回はピナクルは「マスターナンバー保持」したいので reduceCore を使用
-      const p1 = reduceCore(mm + dd);
-      const p2 = reduceCore(dd + yy);
-      return p1 + p2;
-    }
+    // ピナクル（未縮約 -> マスター保持で縮約）
+    // P1 = 月 + 日
+    // P2 = 日 + 年
+    // P3 = P1 + P2
+    // P4 = 月 + 年
+    const p1 = reduceCore(mmRaw + ddRaw);
+    const p2 = reduceCore(ddRaw + yyRaw);
+    const p3 = reduceCore(p1 + p2);
+    const p4 = reduceCore(mmRaw + yyRaw);
 
-    // ★変更点：ピナクルは reduceSingle -> reduceCore（11/22/33保持）
-    const pinnacles: [number, number, number, number] = [
-      reduceCore(mm1 + dd1),
-      reduceCore(dd1 + yy1),
-      reduceCore(pinnaclesStep3(mm1, dd1, yy1)),
-      reduceCore(mm1 + yy1),
-    ];
+    const pinnacles: [number, number, number, number] = [p1, p2, p3, p4];
 
-    // チャレンジは差の絶対値なので 0〜8（仕様上マスターナンバーにはならない）
-    const challenges: [number, number, number, number] = [
-      Math.abs(mm1 - dd1),
-      Math.abs(dd1 - yy1),
-      Math.abs(Math.abs(mm1 - dd1) - Math.abs(dd1 - yy1)),
-      Math.abs(mm1 - yy1),
-    ];
+    // チャレンジ（未縮約の差 -> マスター保持で縮約）
+    // C1 = |月 - 日|
+    // C2 = |日 - 年|
+    // C3 = |C1 - C2|
+    // C4 = |月 - 年|
+    const c1 = reduceCore(Math.abs(mmRaw - ddRaw));
+    const c2 = reduceCore(Math.abs(ddRaw - yyRaw));
+    const c3 = reduceCore(Math.abs(c1 - c2));
+    const c4 = reduceCore(Math.abs(mmRaw - yyRaw));
 
+    const challenges: [number, number, number, number] = [c1, c2, c3, c4];
+
+    // 年齢帯（ここは従来通り：LPを1桁化して使う）
     const end1 = 36 - reduceSingle(lifePath);
     const ages: [string, string, string, string] = [
       `0〜${end1}`,
@@ -271,9 +274,9 @@ export default function SinglePage() {
       counts,
       strong,
       missing,
-      mm1,
-      dd1,
-      yy1,
+      mmRaw,
+      ddRaw,
+      yyRaw,
       pinnacles,
       challenges,
       end1,
@@ -452,7 +455,7 @@ export default function SinglePage() {
               </div>
 
               <div className="mt-2 text-[11px] text-slate-600">
-                ※ ピナクルは 11/22/33 を保持します（チャレンジは差分計算のため 0〜8 になり、マスターにはなりません）。
+                ※ ピナクル・チャレンジともに「未縮約の月/日/年」から計算し、11/22/33を保持します。
               </div>
             </div>
           </div>
@@ -478,8 +481,7 @@ export default function SinglePage() {
             <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
               <li>基本は各合計を 1桁になるまで加算して縮約します（例：29 → 2+9=11）。</li>
               <li>主要ナンバー（LP/PN/DP/MP/SP）は 11 / 22 / 33 をマスターナンバーとして保持します。</li>
-              <li>ピナクルは 11 / 22 / 33 を保持します。</li>
-              <li>チャレンジは差分計算（絶対値）なので 0〜8 になり、マスターナンバーは発生しません。</li>
+              <li>ピナクル・チャレンジは未縮約の月/日/年から算出し、11 / 22 / 33 を保持します。</li>
               <li>母音は A/E/I/O/U のみ（Yは母音に含めません）。</li>
               <li>インテンシティは「名前（英字）」を数値化した 1〜9 の出現回数で集計します。</li>
             </ul>
@@ -629,9 +631,9 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    月 {result.d.m}→{result.mm1}、日 {result.d.d}→{result.dd1}、年 {result.d.y}→
-                    {result.yy1}。P1=月+日→{result.pinnacles[0]}、P2=日+年→{result.pinnacles[1]}、
-                    P3=P1+P2→{result.pinnacles[2]}、P4=月+年→{result.pinnacles[3]}。結果：{" "}
+                    未縮約：月 {result.mmRaw}、日 {result.ddRaw}、年 {result.yyRaw}。P1=月+日→
+                    {result.pinnacles[0]}、P2=日+年→{result.pinnacles[1]}、P3=P1+P2→
+                    {result.pinnacles[2]}、P4=月+年→{result.pinnacles[3]}。結果：{" "}
                     <b>{result.pinnacles.join(", ")}</b>
                   </>
                 ) : (
@@ -645,8 +647,8 @@ export default function SinglePage() {
               v={
                 result ? (
                   <>
-                    C1=|月−日|={result.challenges[0]}、C2=|日−年|={result.challenges[1]}、
-                    C3=|C1−C2|={result.challenges[2]}、C4=|月−年|={result.challenges[3]}。結果：{" "}
+                    未縮約：C1=|月−日|→{result.challenges[0]}、C2=|日−年|→{result.challenges[1]}、
+                    C3=|C1−C2|→{result.challenges[2]}、C4=|月−年|→{result.challenges[3]}。結果：{" "}
                     <b>{result.challenges.join(", ")}</b>
                   </>
                 ) : (
