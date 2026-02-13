@@ -39,11 +39,7 @@ const isValidDate = (y: number, m: number, d: number): boolean => {
 
   // JS Dateで実在日付チェック（うるう年含む）
   const dt = new Date(y, m - 1, d);
-  return (
-    dt.getFullYear() === y &&
-    dt.getMonth() === m - 1 &&
-    dt.getDate() === d
-  );
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
 };
 
 const parseDate = (v: string): { y: number; m: number; d: number } | null => {
@@ -171,7 +167,6 @@ export default function SinglePage() {
     let personalitySum = 0;
 
     // インテンシティ（名前由来）用：各文字の数値（1-9）を並べた文字列
-    // 例: TARO -> 2,1,9,6 -> "2196"
     let nameDigits = "";
 
     for (const ch of letters) {
@@ -206,7 +201,6 @@ export default function SinglePage() {
       9: 0,
     };
 
-    // 名前が空なら空文字のまま（カウントは全部0）
     const intensityDigits = nameDigits;
 
     intensityDigits.split("").forEach((n) => {
@@ -228,18 +222,22 @@ export default function SinglePage() {
     const yy1 = reduceSingle(d.y);
 
     function pinnaclesStep3(mm: number, dd: number, yy: number) {
-      const p1 = reduceSingle(mm + dd);
-      const p2 = reduceSingle(dd + yy);
+      // P3 = P1 + P2（P1/P2は各期の値）
+      // 今回はピナクルは「マスターナンバー保持」したいので reduceCore を使用
+      const p1 = reduceCore(mm + dd);
+      const p2 = reduceCore(dd + yy);
       return p1 + p2;
     }
 
+    // ★変更点：ピナクルは reduceSingle -> reduceCore（11/22/33保持）
     const pinnacles: [number, number, number, number] = [
-      reduceSingle(mm1 + dd1),
-      reduceSingle(dd1 + yy1),
-      reduceSingle(pinnaclesStep3(mm1, dd1, yy1)),
-      reduceSingle(mm1 + yy1),
+      reduceCore(mm1 + dd1),
+      reduceCore(dd1 + yy1),
+      reduceCore(pinnaclesStep3(mm1, dd1, yy1)),
+      reduceCore(mm1 + yy1),
     ];
 
+    // チャレンジは差の絶対値なので 0〜8（仕様上マスターナンバーにはならない）
     const challenges: [number, number, number, number] = [
       Math.abs(mm1 - dd1),
       Math.abs(dd1 - yy1),
@@ -452,6 +450,10 @@ export default function SinglePage() {
                   </tbody>
                 </table>
               </div>
+
+              <div className="mt-2 text-[11px] text-slate-600">
+                ※ ピナクルは 11/22/33 を保持します（チャレンジは差分計算のため 0〜8 になり、マスターにはなりません）。
+              </div>
             </div>
           </div>
         </div>
@@ -476,7 +478,8 @@ export default function SinglePage() {
             <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
               <li>基本は各合計を 1桁になるまで加算して縮約します（例：29 → 2+9=11）。</li>
               <li>主要ナンバー（LP/PN/DP/MP/SP）は 11 / 22 / 33 をマスターナンバーとして保持します。</li>
-              <li>ピナクル・チャレンジは 1桁（デジタルルート）として扱います（マスター保持なし）。</li>
+              <li>ピナクルは 11 / 22 / 33 を保持します。</li>
+              <li>チャレンジは差分計算（絶対値）なので 0〜8 になり、マスターナンバーは発生しません。</li>
               <li>母音は A/E/I/O/U のみ（Yは母音に含めません）。</li>
               <li>インテンシティは「名前（英字）」を数値化した 1〜9 の出現回数で集計します。</li>
             </ul>
@@ -627,9 +630,9 @@ export default function SinglePage() {
                 result ? (
                   <>
                     月 {result.d.m}→{result.mm1}、日 {result.d.d}→{result.dd1}、年 {result.d.y}→
-                    {result.yy1}。P1=月+日→{reduceSingle(result.mm1 + result.dd1)}、P2=日+年→
-                    {reduceSingle(result.dd1 + result.yy1)}、P3=P1+P2→{result.pinnacles[2]}、
-                    P4=月+年→{result.pinnacles[3]}。結果： <b>{result.pinnacles.join(", ")}</b>
+                    {result.yy1}。P1=月+日→{result.pinnacles[0]}、P2=日+年→{result.pinnacles[1]}、
+                    P3=P1+P2→{result.pinnacles[2]}、P4=月+年→{result.pinnacles[3]}。結果：{" "}
+                    <b>{result.pinnacles.join(", ")}</b>
                   </>
                 ) : (
                   "入力してください。"
